@@ -1,9 +1,13 @@
 {
-  "name": "pokefanIconZ-bot",
-  "version": "1.0.0",
+  "name": "pokefaniconz-bot",
+  "version": "2.0.0",
   "type": "module",
+  "description": "PokeFanIconZ Discord Bot — Railway-ready",
   "scripts": {
-    "start": "node --enable-source-maps ./dist/index.mjs"
+    "start": "node ./src/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "discord.js": "^14.18.0"
