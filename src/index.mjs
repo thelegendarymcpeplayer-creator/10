@@ -327,12 +327,12 @@ const commands = [
     .addIntegerOption(o => o.setName('max_uses').setDescription('Max uses (default 1)').setMinValue(1)),
 
   // ── Tags / Custom Commands ──
-  new SlashCommandBuilder().setName('tag').setDescription('Quick response tags')
+  new SlashCommandBuilder().setName('tag').setDescription('Quick response tags').setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addSubcommand(s => s.setName('use').setDescription('Use a tag').addStringOption(o => o.setName('name').setDescription('Tag name').setRequired(true)))
-    .addSubcommand(s => s.setName('create').setDescription('Create a tag').setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addSubcommand(s => s.setName('create').setDescription('Create a tag')
       .addStringOption(o => o.setName('name').setDescription('Tag name').setRequired(true))
       .addStringOption(o => o.setName('content').setDescription('Tag content').setRequired(true)))
-    .addSubcommand(s => s.setName('delete').setDescription('Delete a tag').setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addSubcommand(s => s.setName('delete').setDescription('Delete a tag')
       .addStringOption(o => o.setName('name').setDescription('Tag name').setRequired(true)))
     .addSubcommand(s => s.setName('list').setDescription('List all tags')),
 
@@ -364,12 +364,12 @@ const commands = [
     .addSubcommand(s => s.setName('remove').setDescription('Remove stat channels')),
 
   // ── Server Rules ──
-  new SlashCommandBuilder().setName('rules').setDescription('Server rules management')
+  new SlashCommandBuilder().setName('rules').setDescription('Server rules management').setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addSubcommand(s => s.setName('show').setDescription('Display server rules'))
-    .addSubcommand(s => s.setName('set').setDescription('Set the server rules (Admin)').setDefaultMemberPermissions(PermissionFlagsBits.Administrator))
-    .addSubcommand(s => s.setName('add').setDescription('Add a rule (Admin)').setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addSubcommand(s => s.setName('set').setDescription('Set the server rules (Admin)'))
+    .addSubcommand(s => s.setName('add').setDescription('Add a rule (Admin)')
       .addStringOption(o => o.setName('rule').setDescription('Rule text').setRequired(true)))
-    .addSubcommand(s => s.setName('remove').setDescription('Remove a rule by number (Admin)').setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addSubcommand(s => s.setName('remove').setDescription('Remove a rule by number (Admin)')
       .addIntegerOption(o => o.setName('number').setDescription('Rule number to remove').setRequired(true).setMinValue(1))),
 
   // ── Partnerships ──
@@ -379,7 +379,7 @@ const commands = [
       .addStringOption(o => o.setName('invite').setDescription('Server invite link').setRequired(true))
       .addStringOption(o => o.setName('description').setDescription('About the server').setRequired(true))
       .addStringOption(o => o.setName('banner').setDescription('Banner image URL')))
-    .addSubcommand(s => s.setName('set-channel').setDescription('Set partnership channel').setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addSubcommand(s => s.setName('set-channel').setDescription('Set partnership channel')
       .addChannelOption(o => o.setName('channel').setDescription('Channel').setRequired(true))),
 
   // ── Utility ──
