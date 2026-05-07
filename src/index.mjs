@@ -119,11 +119,16 @@ function buildCustomEmbed(template, vars = {}) {
     desc  = desc.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
     title = title.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
   }
+  // Clamp to Discord embed limits after variable substitution
+  if (title.length > 256)  title = title.slice(0, 256);
+  if (desc.length  > 4096) desc  = desc.slice(0, 4096);
+  const footer = template.footer ? template.footer.slice(0, 2048) : null;
+
   if (template.embed === false) return { content: `${title ? `**${title}**\n` : ''}${desc}` };
   const emb = new EmbedBuilder().setColor(hexToInt(template.color ?? null)).setTimestamp();
   if (title) emb.setTitle(title);
   emb.setDescription(desc);
-  if (template.footer) emb.setFooter({ text: template.footer });
+  if (footer) emb.setFooter({ text: footer });
   if (template.gifUrl) emb.setImage(template.gifUrl);
   return { embeds: [emb] };
 }
@@ -656,12 +661,30 @@ async function handleCustomizeModalSubmit(interaction) {
   if (!ctx) { await interaction.editReply('❌ Session expired.'); return; }
 
   const style    = interaction.fields.getTextInputValue('style').trim().toLowerCase();
-  const title    = interaction.fields.getTextInputValue('title').trim() || null;
+  const rawTitle = interaction.fields.getTextInputValue('title').trim() || null;
   const desc     = interaction.fields.getTextInputValue('description').trim();
   const colorGif = interaction.fields.getTextInputValue('color_gif').trim();
-  const footer   = interaction.fields.getTextInputValue('footer').trim() || null;
+  const rawFooter = interaction.fields.getTextInputValue('footer').trim() || null;
+
+  // ── Discord embed field length limits ──
+  const TITLE_MAX = 256, DESC_MAX = 4096, FOOTER_MAX = 2048;
+  const errors = [];
+  if (rawTitle && rawTitle.length > TITLE_MAX)
+    errors.push(`❌ **Title** exceeds the ${TITLE_MAX}-character Discord limit (yours: ${rawTitle.length} chars). Please shorten it.`);
+  if (desc.length > DESC_MAX)
+    errors.push(`❌ **Description** exceeds the ${DESC_MAX}-character Discord limit (yours: ${desc.length} chars). Please shorten it.`);
+  if (rawFooter && rawFooter.length > FOOTER_MAX)
+    errors.push(`❌ **Footer** exceeds the ${FOOTER_MAX}-character Discord limit (yours: ${rawFooter.length} chars). Please shorten it.`);
+  if (errors.length) { await interaction.editReply(errors.join('\n')); return; }
+
+  const title  = rawTitle;
+  const footer = rawFooter;
 
   const [rawColor, rawGif] = colorGif.split('|').map(s=>s.trim());
+  if (rawColor && !/^#[0-9a-fA-F]{6}$/.test(rawColor))
+    errors.push(`❌ **Color** must be a valid 6-digit hex code (e.g. \`#FEE75C\`). Got: \`${rawColor}\``);
+  if (errors.length) { await interaction.editReply(errors.join('\n')); return; }
+
   const color  = /^#[0-9a-fA-F]{6}$/.test(rawColor) ? rawColor : '#5865F2';
   const gifUrl = rawGif?.startsWith('http') ? rawGif : null;
 
@@ -1925,9 +1948,10 @@ client.once('ready', async c => {
     if (GUILD_ID) {
       await rest.put(Routes.applicationGuildCommands(c.user.id, GUILD_ID), { body:commands });
       console.log(`✅ Guild commands synced instantly for ${GUILD_ID}`);
+    } else {
+      await rest.put(Routes.applicationCommands(c.user.id), { body:commands });
+      console.log('✅ Global commands registered (propagate up to 1h)');
     }
-    await rest.put(Routes.applicationCommands(c.user.id), { body:commands });
-    console.log('✅ Global commands registered (propagate up to 1h)');
   } catch (e) { console.error('Command registration error:', e.message); }
 
   // Scheduled tasks
